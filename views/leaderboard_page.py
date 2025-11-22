@@ -2,6 +2,11 @@ import streamlit as st
 from db import get_leaderboard
 
 def show():
+    user = st.session_state.get("user")
+    if not user or user.get("role") != "admin":
+        st.error("Admin access required.")
+        st.stop()
+
     st.header("Leaderboard")
 
     # Get aggregated scores

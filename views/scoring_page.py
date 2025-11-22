@@ -1,30 +1,31 @@
 import streamlit as st
-from db import get_judges, get_competitors, replace_scores_for_judge, get_scores_for_judge
+from db import get_competitors, replace_scores_for_judge, get_scores_for_judge, get_judge_by_id
 
 def show():
+    user = st.session_state.get("user")
+    if not user or user.get("role") != "judge":
+        st.error("Judge access required to enter scores.")
+        st.stop()
+
     st.header("Enter Scores")
 
     # Load judges and competitors
-    judges = get_judges()
     competitors = get_competitors()
 
-    if not judges:
-        st.warning("Add judges first.")
+    judge_id = user.get("judge_id")
+    judge = get_judge_by_id(judge_id) if judge_id else None
+    if not judge:
+        st.error("Judge account is missing a profile.")
         return
     if not competitors:
         st.warning("Add competitors first.")
         return
 
-    # Dropdown for selecting judge
-    judge_map = {f"{j['name']} ({j['email']})": j["id"] for j in judges}
-    selected = st.selectbox("Select judge", list(judge_map.keys()))
-    judge_id = judge_map[selected]
-
     # Fetch this judge's existing scores
     existing_scores = get_scores_for_judge(judge_id)
 
     st.write("---")
-    st.write("Enter scores for each competitor:")
+    st.write(f"Enter scores for each competitor as **{judge['name']}**:")
 
     scores = {}
 
