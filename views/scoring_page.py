@@ -17,7 +17,7 @@ def show():
 
     # Show success toast if flagged from previous save
     if st.session_state.pop("score_saved", False):
-        st.toast("Scores saved (average recorded).", icon="✅")
+        st.toast("Scores saved.", icon="✅")
 
     # Load competitors for scoring and active questions
     competitors = get_competitors()
