@@ -65,10 +65,12 @@ def show():
         answers[q["id"]] = choice
 
     if st.button("Save scores", key=f"save_scores_{comp['id']}"):
-        cleaned = {qid: val * 10 for qid, val in answers.items() if val > 0}
-        if not cleaned:
-            st.error("Please select scores for at least one question.")
+        # Require every question to be scored (non-zero) before saving
+        missing = [q for q in questions if answers.get(q["id"], 0) == 0]
+        if missing:
+            st.error("Please score all questions before saving.")
         else:
+            cleaned = {qid: val * 10 for qid, val in answers.items()}
             save_answers_for_judge(judge_id, comp["id"], cleaned)
             st.session_state["score_saved"] = True
             st.rerun()
