@@ -17,14 +17,22 @@ DEFAULT_DB_NAME = "judging_app"
 
 def _get_mongo_uri() -> str:
     # Streamlit Cloud exposes secrets via st.secrets
-    if "MONGODB_URI" in st.secrets:
-        return st.secrets["MONGODB_URI"]
+    try:
+        secret_uri = st.secrets.get("MONGODB_URI")  # type: ignore[attr-defined]
+    except Exception:
+        secret_uri = None
+    if secret_uri:
+        return secret_uri
     return os.getenv("MONGODB_URI", DEFAULT_MONGODB_URI)
 
 
 def _get_db_name() -> str:
-    if "MONGODB_DB" in st.secrets:
-        return st.secrets["MONGODB_DB"]
+    try:
+        secret_db = st.secrets.get("MONGODB_DB")  # type: ignore[attr-defined]
+    except Exception:
+        secret_db = None
+    if secret_db:
+        return secret_db
     return os.getenv("MONGODB_DB", os.getenv("MONGODB_DBNAME", DEFAULT_DB_NAME))
 
 
