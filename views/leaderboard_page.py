@@ -8,6 +8,8 @@ def show():
         st.stop()
 
     st.header("Leaderboard")
+    if st.button("Refresh leaderboard"):
+        st.rerun()
 
     # Get aggregated scores
     results = get_leaderboard()
