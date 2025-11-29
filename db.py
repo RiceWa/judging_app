@@ -218,6 +218,9 @@ def save_answers_for_judge(judge_id: Any, competitor_id: Any, answers_dict: Dict
         db.scores.insert_one(
             {"judge_id": judge_oid, "competitor_id": comp_oid, "value": avg_value}
         )
+    else:
+        # No answers, ensure scores entry is removed
+        db.scores.delete_many({"judge_id": judge_oid, "competitor_id": comp_oid})
 
 
 def get_scores_for_judge(judge_id: Any):
@@ -273,6 +276,31 @@ def get_leaderboard():
 
 # --- Questions/answers ---
 
+def _recompute_scores_from_answers(db):
+    """
+    Rebuild scores collection by averaging existing answers per judge+competitor.
+    """
+    db.scores.delete_many({})
+    pipeline = [
+        {
+            "$group": {
+                "_id": {"judge_id": "$judge_id", "competitor_id": "$competitor_id"},
+                "avg_value": {"$avg": "$value"},
+            }
+        }
+    ]
+    docs = []
+    for row in db.answers.aggregate(pipeline):
+        docs.append(
+            {
+                "judge_id": row["_id"]["judge_id"],
+                "competitor_id": row["_id"]["competitor_id"],
+                "value": row["avg_value"],
+            }
+        )
+    if docs:
+        db.scores.insert_many(docs)
+
 def get_questions():
     db = get_db()
     rows = db.questions.find().sort("_id", ASCENDING)
@@ -291,6 +319,7 @@ def delete_question(question_id):
     question_oid = _oid(question_id)
     db.answers.delete_many({"question_id": question_oid})
     db.questions.delete_one({"_id": question_oid})
+    _recompute_scores_from_answers(db)
 
 def get_answers_for_judge_competitor(judge_id, competitor_id):
     db = get_db()
