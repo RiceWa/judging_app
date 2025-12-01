@@ -1,5 +1,8 @@
 import streamlit as st
 from db import get_leaderboard
+import io
+import csv
+from datetime import datetime
 
 def show():
     user = st.session_state.get("user")
@@ -40,3 +43,26 @@ def show():
         prev_avg = avg
 
     st.dataframe(data)
+
+    # CSV export: create CSV bytes and provide a download button
+    if data:
+        csv_buffer = io.StringIO()
+        writer = csv.DictWriter(csv_buffer, fieldnames=[
+            "Rank",
+            "Competitor",
+            "Number of Judges that entered scores",
+            "Total Score",
+            "Average Score",
+        ])
+        writer.writeheader()
+        for row in data:
+            writer.writerow(row)
+        csv_bytes = csv_buffer.getvalue().encode("utf-8")
+        filename = f"leaderboard_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        st.download_button(
+            label="Export",
+            data=csv_bytes,
+            file_name=filename,
+            mime="text/csv",
+            help="Download current leaderboard as a CSV file",
+        )
