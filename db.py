@@ -163,14 +163,17 @@ def get_competitors():
     return [_doc_with_id(r) for r in rows]
 
 
-def insert_competitor(name: str):
+def insert_competitor(name: str, notes: str = ""):
     db = get_db()
-    db.competitors.insert_one({"name": name})
+    db.competitors.insert_one({"name": name, "notes": notes})
 
 
-def update_competitor(competitor_id: Any, name: str):
+def update_competitor(competitor_id: Any, name: str, notes: Optional[str] = None):
     db = get_db()
-    db.competitors.update_one({"_id": _oid(competitor_id)}, {"$set": {"name": name}})
+    update_fields: Dict[str, Any] = {"name": name}
+    if notes is not None:
+        update_fields["notes"] = notes
+    db.competitors.update_one({"_id": _oid(competitor_id)}, {"$set": update_fields})
 
 def delete_competitor(competitor_id: Any):
     db = get_db()
