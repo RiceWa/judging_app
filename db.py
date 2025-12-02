@@ -6,6 +6,8 @@ import streamlit as st
 from bson import ObjectId
 from pymongo import ASCENDING, MongoClient
 from pymongo.errors import DuplicateKeyError
+from bson.binary import Binary
+from datetime import datetime
 
 # Pull from Streamlit secrets first, env var second, and finally a hard-coded fallback
 DEFAULT_MONGODB_URI = (
@@ -275,6 +277,40 @@ def get_leaderboard():
         base["competitor_name"] = row["name"]
         results.append(base)
     return results
+
+
+# --- Assets / customization helpers ---
+def save_banner_image(file_bytes: bytes, filename: str, content_type: str):
+    """Save or replace the banner image in the `assets` collection."""
+    db = get_db()
+    doc = {
+        "key": "banner",
+        "filename": filename,
+        "content_type": content_type,
+        "data": Binary(file_bytes),
+        "updated_at": datetime.utcnow(),
+    }
+    db.assets.update_one({"key": "banner"}, {"$set": doc}, upsert=True)
+
+
+def get_banner_image():
+    """Return banner image as dict or None: {filename, content_type, data(bytes)}"""
+    db = get_db()
+    row = db.assets.find_one({"key": "banner"})
+    if not row:
+        return None
+    return {
+        "filename": row.get("filename"),
+        "content_type": row.get("content_type"),
+        "data": bytes(row.get("data")) if row.get("data") is not None else None,
+        "updated_at": row.get("updated_at"),
+    }
+
+
+def delete_banner_image():
+    """Remove the banner image document from the assets collection."""
+    db = get_db()
+    db.assets.delete_many({"key": "banner"})
 
 
 # --- Questions/answers ---

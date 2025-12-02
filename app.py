@@ -27,7 +27,7 @@ def main():
 
     if user["role"] == "admin":
         page = st.sidebar.radio("Navigation", [
-            "Manage Judges", "Manage Competitors", "Manage Questions", "Leaderboard"
+            "Manage Judges", "Manage Competitors", "Manage Questions", "Customize", "Leaderboard"
         ])
     else:
         page = st.sidebar.radio("Navigation", [
@@ -41,6 +41,9 @@ def main():
         competitors_page.show()
     elif page == "Manage Questions":
         questions_page.show()
+    elif page == "Customize":
+        import views.customize_page as customize_page
+        customize_page.show()
     elif page == "Enter Scores":
         scoring_page.show()
     elif page == "Leaderboard":

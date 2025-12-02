@@ -5,6 +5,7 @@ from db import (
     get_questions,
     get_answers_for_judge_competitor,
     save_answers_for_judge,
+    get_banner_image,
 )
 
 def show():
@@ -12,6 +13,14 @@ def show():
     if not user or user.get("role") != "judge":
         st.error("Judge access required to enter scores.")
         st.stop()
+
+    # Show optional banner image configured by admin
+    try:
+        banner = get_banner_image()
+    except Exception:
+        banner = None
+    if banner and banner.get("data"):
+        st.image(banner["data"], width="stretch")
 
     st.header("Enter Scores")
 
