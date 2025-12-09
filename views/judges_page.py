@@ -15,12 +15,22 @@ def show():
 
     st.header("Manage Judges")
 
+    # Flash success from previous add submission
+    add_success = st.session_state.pop("judge_add_success", None)
+    if add_success:
+        st.success(add_success)
+
+    # If prior submission requested a reset, clear the widget state before rendering inputs
+    if st.session_state.pop("reset_add_judge_form", False):
+        for key in ("add_judge_name", "add_judge_email", "add_judge_username", "add_judge_password"):
+            st.session_state[key] = ""
+
     # Form to add a new judge + login
     with st.form("add_judge"):
-        name = st.text_input("Judge name")
-        email = st.text_input("Judge email")
-        username = st.text_input("Judge username")
-        password = st.text_input("Temporary password", type="password")
+        name = st.text_input("Judge name", key="add_judge_name")
+        email = st.text_input("Judge email", key="add_judge_email")
+        username = st.text_input("Judge username", key="add_judge_username")
+        password = st.text_input("Temporary password", type="password", key="add_judge_password")
         submitted = st.form_submit_button("Add judge")
 
         if submitted:
@@ -34,7 +44,9 @@ def show():
                         username.strip(),
                         password
                     )
-                    st.success(f"Added judge account for: {name}")
+                    st.session_state["reset_add_judge_form"] = True
+                    st.session_state["judge_add_success"] = f"Added judge account for: {name}"
+                    st.rerun()
                 except DuplicateKeyError:
                     message = "Email or username already exists."
                     st.error(message)

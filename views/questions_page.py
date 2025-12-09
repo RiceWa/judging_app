@@ -19,6 +19,13 @@ def show():
 
     st.header("Manage Questions")
 
+    add_success = st.session_state.pop("question_add_success", None)
+    if add_success:
+        st.success(add_success)
+
+    if st.session_state.pop("reset_add_question_form", False):
+        st.session_state["add_question_prompt"] = ""
+
     render_intro_message_editor()
     render_add_form()
     render_question_list()
@@ -27,14 +34,15 @@ def show():
 def render_add_form():
     st.subheader("Add a question")
     with st.form("add_question"):
-        prompt = st.text_input("Question prompt")
+        prompt = st.text_input("Question prompt", key="add_question_prompt")
         submitted = st.form_submit_button("Add question")
         if submitted:
             if not prompt.strip():
                 st.error("Prompt is required.")
             else:
                 insert_question(prompt.strip())
-                st.success("Question added.")
+                st.session_state["reset_add_question_form"] = True
+                st.session_state["question_add_success"] = "Question added."
                 st.rerun()
 
 
